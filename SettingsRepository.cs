@@ -63,6 +63,71 @@ namespace DotNetNuke.SettingsRepository
             return this.GetSettings(setting.Scope).GetValueOrDefault(setting.SettingName, setting.DefaultValue, converter);
         }
 
+        /// <summary>Sets the value of the setting.</summary>
+        /// <typeparam name="T">The type of the setting's value</typeparam>
+        /// <param name="setting">The setting.</param>
+        /// <param name="value">The value.</param>
+        public void SetValue<T>(Setting<T> setting, T value)
+        {
+            this.SetValue(setting, value, DefaultStringifier);
+        }
+
+        /// <summary>Sets the value of the setting.</summary>
+        /// <typeparam name="T">The type of the setting's value</typeparam>
+        /// <param name="setting">The setting.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="converter">A function which converts the value into its string representation.</param>
+        public void SetValue<T>(Setting<T> setting, T value, Func<T, string> converter)
+        {
+            var convertedValue = converter(value);
+            var setSettingValue = this.GetSetter(setting);
+            setSettingValue(convertedValue);
+        }
+
+        /// <summary>The default conversion algorithm from a value to a <see cref="string"/> (for storing a setting).</summary>
+        /// <typeparam name="T">The type of the value to convert</typeparam>
+        /// <param name="value">The value to convert.</param>
+        /// <returns>A <see cref="string"/> representation of the <paramref name="value"/></returns>
+        private static string DefaultStringifier<T>(T value)
+        {
+            if (ReferenceEquals(value, null))
+            {
+                return null;
+            }
+
+            var convertibleValue = value as IConvertible;
+            if (convertibleValue != null)
+            {
+                return convertibleValue.ToString(CultureInfo.InvariantCulture);
+            }
+
+            return value.ToString();
+        }
+
+        /// <summary>Gets a function which will update the setting's value.</summary>
+        /// <typeparam name="T">The type of the setting's value</typeparam>
+        /// <param name="setting">The setting.</param>
+        /// <returns>A function which takes the <see cref="string"/> value to which to update the setting's value</returns>
+        /// <exception cref="InvalidOperationException">The <paramref name="setting"/> has a <see cref="Setting{T}.Scope"/> which is an invalid <see cref="SettingScope"/> value</exception>
+        private Action<string> GetSetter<T>(Setting<T> setting)
+        {
+            switch (setting.Scope)
+            {
+                case SettingScope.TabModule:
+                    return value => new ModuleController().UpdateTabModuleSetting(this._moduleInfo.TabModuleID, setting.SettingName, value);
+                case SettingScope.Module:
+                    return value => new ModuleController().UpdateModuleSetting(this._moduleInfo.ModuleID, setting.SettingName, value);
+                case SettingScope.Tab:
+                    return value => new TabController().UpdateTabSetting(this._moduleInfo.TabID, setting.SettingName, value);
+                case SettingScope.Portal:
+                    return value => PortalController.UpdatePortalSetting(this._moduleInfo.PortalID, setting.SettingName, value);
+                case SettingScope.Host:
+                    return value => HostController.Instance.Update(setting.SettingName, value);
+                default:
+                    throw new InvalidOperationException("Invalid SettingScope");
+            }
+        }
+
         /// <summary>Gets the settings collection for the given <paramref name="settingScope"/>.</summary>
         /// <param name="settingScope">The scope of settings to get.</param>
         /// <returns>A <see cref="IDictionary"/> instance mapping between setting names and setting values as (both as <see cref="string"/> values).</returns>

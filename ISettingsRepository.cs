@@ -33,5 +33,18 @@ namespace DotNetNuke.SettingsRepository
         /// <param name="converter">A function which converts the string representation of the value into <typeparamref name="T"/>.</param>
         /// <returns>The setting's value (returns the default value of the setting if it hasn't been set yet)</returns>
         T GetValue<T>(Setting<T> setting, Func<string, T> converter);
+
+        /// <summary>Sets the value of the setting.</summary>
+        /// <typeparam name="T">The type of the setting's value</typeparam>
+        /// <param name="setting">The setting.</param>
+        /// <param name="value">The value.</param>
+        void SetValue<T>(Setting<T> setting, T value);
+
+        /// <summary>Sets the value of the setting.</summary>
+        /// <typeparam name="T">The type of the setting's value</typeparam>
+        /// <param name="setting">The setting.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="converter">A function which converts the value into its string representation.</param>
+        void SetValue<T>(Setting<T> setting, T value, Func<T, string> converter);
     }
 }
