@@ -24,6 +24,16 @@ namespace DotNetNuke.SettingsRepository
             this.moduleContext = moduleContext;
         }
 
+        /// <summary>Determines whether the specified setting has any value.</summary>
+        /// <typeparam name="T">The type of the setting's value</typeparam>
+        /// <param name="setting">The setting.</param>
+        /// <returns><c>true</c> if the specified setting has a value; otherwise, <c>false</c>.</returns>
+        public bool HasValue<T>(Setting<T> setting)
+        {
+            Requires.PropertyNotNullOrEmpty("setting", "SettingName", setting.SettingName);
+            return this.GetSettings(setting.Scope).Contains(setting.SettingName);
+        }
+
         /// <summary>Gets the value of the setting.</summary>
         /// <typeparam name="T">The type of the setting's value</typeparam>
         /// <param name="setting">The setting.</param>
