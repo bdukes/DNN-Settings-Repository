@@ -19,7 +19,8 @@ Public Class SettingsRepositoryTests
 
     Private Sub StubHostSettings(settings As Dictionary(Of String, String))
         Dim stubHostController = Substitute.For(Of IHostController)()
-        stubHostController.GetSettingsDictionary().Returns(settings)
         HostController.RegisterInstance(stubHostController)
+        stubHostController = HostController.Instance
+        stubHostController.GetSettingsDictionary().Returns(settings)
     End Sub
 End Class
