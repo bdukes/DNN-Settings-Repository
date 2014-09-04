@@ -50,6 +50,28 @@ Public Class SettingsRepositoryTests
         Assert.Throws(Of FormatException)(Function() repository.GetValue(setting))
     End Sub
 
+    <Test>
+    Public Sub HasValue_GivenInvalidBooleanText_ReturnsTrue()
+        StubHostSettings(New Dictionary(Of String, String) From {{"MyModule_TheSetting", "not a boolean"}})
+        Dim setting As New Setting(Of Boolean)("MyModule_TheSetting", SettingScope.Host, False)
+        Dim repository As ISettingsRepository = New SettingsRepository(New ModuleInstanceContext())
+
+        Dim hasValue = repository.HasValue(setting)
+
+        Assert.IsTrue(hasValue)
+    End Sub
+
+    <Test>
+    Public Sub HasValue_GivenNoMatchingSetting_ReturnsFalse()
+        StubHostSettings(New Dictionary(Of String, String) From {{"MyModule_TheOtherSetting", "something"}})
+        Dim setting As New Setting(Of Boolean)("MyModule_TheSetting", SettingScope.Host, False)
+        Dim repository As ISettingsRepository = New SettingsRepository(New ModuleInstanceContext())
+
+        Dim hasValue = repository.HasValue(setting)
+
+        Assert.IsFalse(hasValue)
+    End Sub
+
     Private Sub StubHostSettings(settings As Dictionary(Of String, String))
         Dim stubHostController = Substitute.For(Of IHostController)()
         HostController.RegisterInstance(stubHostController)
