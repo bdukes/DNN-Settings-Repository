@@ -15,13 +15,21 @@ namespace DotNetNuke.SettingsRepository
     /// <summary>An <see cref="ISettingsRepository"/> implementation which uses a <see cref="ModuleInfo"/> instance for context</summary>
     public class SettingsRepository : ISettingsRepository
     {
-        private readonly ModuleInstanceContext moduleContext;
+        /// <summary>The module info</summary>
+        private readonly ModuleInfo _moduleInfo;
 
         /// <summary>Initializes a new instance of the <see cref="SettingsRepository"/> class.</summary>
         /// <param name="moduleContext">The module context.</param>
         public SettingsRepository(ModuleInstanceContext moduleContext)
         {
-            this.moduleContext = moduleContext;
+            this._moduleInfo = moduleContext.Configuration;
+        }
+
+        /// <summary>Initializes a new instance of the <see cref="SettingsRepository"/> class.</summary>
+        /// <param name="moduleInfo">The module info.</param>
+        public SettingsRepository(ModuleInfo moduleInfo)
+        {
+            this._moduleInfo = moduleInfo;
         }
 
         /// <summary>Determines whether the specified setting has any value.</summary>
@@ -64,15 +72,15 @@ namespace DotNetNuke.SettingsRepository
             switch (settingScope)
             {
                 case SettingScope.TabModule:
-                    return this.moduleContext.Configuration.TabModuleSettings;
+                    return this._moduleInfo.TabModuleSettings;
                 case SettingScope.Module:
-                    return this.moduleContext.Configuration.ModuleSettings;
+                    return this._moduleInfo.ModuleSettings;
+                case SettingScope.Tab:
+                    return this._moduleInfo.ParentTab.TabSettings;
+                case SettingScope.Portal:
+                    return PortalController.GetPortalSettingsDictionary(this._moduleInfo.PortalID);
                 case SettingScope.Host:
                     return HostController.Instance.GetSettingsDictionary();
-                case SettingScope.Portal:
-                    return PortalController.GetPortalSettingsDictionary(this.moduleContext.PortalId);
-                case SettingScope.Tab:
-                    return this.moduleContext.PortalSettings.ActiveTab.TabSettings;
                 default:
                     throw new InvalidOperationException("Invalid SettingScope");
             }
